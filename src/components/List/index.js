@@ -22,7 +22,7 @@ export const List = ({ tech, url, navigation }) => {
 
 
     const handleNavigate = (id) => {
-        navigation.navigate('Book', { id });
+        navigation.navigate('Booking', { id });
     }
 
     return (
