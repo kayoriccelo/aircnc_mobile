@@ -1,9 +1,37 @@
-import React from 'react';
-import { View, KeyboardAvoidingView, Image, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, AsyncStorage, KeyboardAvoidingView, Image, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 
+import api from '../../services/api';
 import logo from '../../../assets/logo.png';
 
-export default function SignIn() {
+
+export default function SignIn({ navigation }) {
+    const [values, setValues] = useState({
+        email: null, techs: null
+    });
+
+    useEffect(() => {
+        AsyncStorage.getItem('user').then(user => {
+            if (user) {
+                navigation.navigate('Spot');
+            };
+        });
+    }, []);
+
+    const onChange = (fieldName) => (value) => {
+        setValues({ ...values, [fieldName]: value });
+    };
+
+    const handleSubmit = async () => {
+        const response = await api.post('/sessions', values);
+        const { _id } = response.data;
+
+        await AsyncStorage.setItem('user', _id);
+        await AsyncStorage.setItem('techs', values['techs']);
+
+        navigation.navigate('Spot');
+    };
+
     return (
         <KeyboardAvoidingView behavior="padding" style={styles.container}>
             <Image source={logo} />
@@ -17,6 +45,8 @@ export default function SignIn() {
                     keyboardType="email-address"
                     autoCapitalize="none"
                     autoCorrect={false}
+                    value={values['email']}
+                    onChangeText={onChange('email')}
                 />
 
                 <Text style={styles.label}>TECNOLOGIAS *</Text>
@@ -26,9 +56,14 @@ export default function SignIn() {
                     placeholderTextColor="#999"
                     autoCapitalize="words"
                     autoCorrect={false}
+                    value={values['techs']}
+                    onChangeText={onChange('techs')}
                 />
 
-                <TouchableOpacity style={styles.button}>
+                <TouchableOpacity
+                    style={styles.button}
+                    onPress={handleSubmit}
+                >
                     <Text style={styles.buttonText}>Encontrar spots</Text>
                 </TouchableOpacity>
             </View>
